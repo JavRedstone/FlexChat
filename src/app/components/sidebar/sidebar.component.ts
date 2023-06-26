@@ -44,7 +44,8 @@ export class SidebarComponent {
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
-        this.chats.push(new Chat(result.name, result.huggingfaceUrls));
+        let res = this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
+        this.chats.push(new Chat(res.name, res.huggingfaceUrls));
         this.selectedChat = this.chats[this.chats.length - 1];
         this.selectedModelUrl = result.huggingfaceUrls[0];
       }
@@ -72,9 +73,26 @@ export class SidebarComponent {
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
-        chat.name = result.name;
+        let res = this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
+        chat.name = res.name;
+        chat.huggingfaceUrls = res.huggingfaceUrls;
       }
     });
+  }
+
+  public setHuggingFaceParams(name: string, huggingfaceUrls: string[]) {
+    if (name.trim().length === 0) {
+      name = 'Untitled Chat';
+    }
+    for (let i = 0; i < huggingfaceUrls.length; i++) {
+        if (huggingfaceUrls[i].trim().length === 0) {
+            huggingfaceUrls.splice(i, 1);
+        }
+    }
+    return {
+      name: name,
+      huggingfaceUrls: huggingfaceUrls
+    }
   }
 
   public deleteChat(chat: Chat) {

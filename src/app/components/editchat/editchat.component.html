@@ -13,9 +13,9 @@
     </button>
   </div>
 
-  <button mat-flat-button color="accent" (click)="addHuggingfaceUrlField()" class="add-field">Add Another Model to Compare</button>
+  <button mat-flat-button color="primary"(click)="addHuggingfaceUrlField()" class="add-field">Add Another Model to Compare</button>
 </div>
 <mat-dialog-actions align="end">
   <button mat-button (click)="cancel()">Cancel</button>
-  <button mat-button [disabled]="!chatName || huggingfaceUrls.length === 0" (click)="saveChat()">Done</button>
+  <button mat-button color="primary" [disabled]="!chatName || huggingfaceUrls.length === 0" (click)="saveChat()">Done</button>
 </mat-dialog-actions>
