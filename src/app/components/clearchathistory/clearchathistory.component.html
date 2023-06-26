@@ -1,0 +1,8 @@
+<h2 mat-dialog-title>Clear Chat History</h2>
+<mat-dialog-content>
+  <p>Are you sure you want to clear the chat history of "{{ chat.name }}"?</p>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-button color="warn" (click)="clear()">Clear</button>
+</mat-dialog-actions>

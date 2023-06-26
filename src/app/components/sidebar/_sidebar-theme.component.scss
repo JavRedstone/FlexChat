@@ -1,0 +1,27 @@
+@import '@angular/material/theming';
+
+@mixin sidebar-component-theme($primary-dark, $accent-dark, $warn-dark) {
+    .sidenav, .new-chat, .clear-chats {
+        background-color: $primary-dark;
+    }
+
+    .toolbar {
+        background-color: $accent-dark;
+    }
+
+    .selected-chat {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .user-message {
+        background-color: $primary-dark;
+    }
+
+    .ai-message {
+        background-color: $accent-dark;
+    }
+
+    .ai-error-message {
+        background-color: $warn-dark;
+    }
+}

@@ -1,0 +1,21 @@
+<h1 mat-dialog-title>Edit FlexChat</h1>
+<div mat-dialog-content>
+  <mat-form-field>
+    <input matInput placeholder="Chat Name" [(ngModel)]="chatName" required>
+  </mat-form-field>
+
+  <div *ngFor="let url of huggingfaceUrls; let i = index; trackBy: trackByFn">
+    <mat-form-field>
+      <input matInput placeholder="HuggingFace Model URL" [(ngModel)]="huggingfaceUrls[i]" required>
+    </mat-form-field>
+    <button mat-icon-button color="warn" *ngIf="huggingfaceUrls.length > 1" (click)="removeHuggingfaceUrlField(i)">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <button mat-flat-button color="accent" (click)="addHuggingfaceUrlField()" class="add-field">Add Another Model to Compare</button>
+</div>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-button [disabled]="!chatName || huggingfaceUrls.length === 0" (click)="saveChat()">Done</button>
+</mat-dialog-actions>

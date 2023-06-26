@@ -1,0 +1,25 @@
+:host {
+  display: block;
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+}
+
+mat-form-field {
+  margin-bottom: 16px;
+  width: calc(100% - 50px);
+}
+
+mat-dialog-actions {
+  justify-content: flex-end;
+}
+
+.add-field {
+  width: 100%;
+}
+
+.field-label {
+  margin-bottom: 4px;
+}

@@ -1,0 +1,126 @@
+<mat-sidenav-container class="container">
+  <mat-sidenav #sidenav mode="side" [opened]="true" class="sidenav">
+    <!-- Sidebar content -->
+    <mat-nav-list class="new-chat">
+      <a mat-list-item (click)="newChat()">
+        <mat-icon matListItemIcon [ngStyle]="{'color':'white'}">add</mat-icon>
+        <h3 [ngStyle]="{'color':'white'}" class="no-select">New FlexChat</h3>
+      </a>
+      <mat-divider [ngStyle]="{'border-color':'white'}"></mat-divider>
+    </mat-nav-list>
+    <mat-list>
+      <a mat-list-item>
+      </a>
+    </mat-list>
+    <mat-nav-list>
+      <a mat-list-item *ngFor="let chat of chats" (click)="selectedChat = chat; scrollToBottom()" [ngStyle]="{ 'background-color': chat == selectedChat ? 'rgba(255, 255, 255, 0.1)' : '' }">
+        <mat-icon matListItemIcon [ngStyle]="{'color':'white'}">chat_bubble</mat-icon>
+        <span [ngStyle]="{'color':'white'}" class="chat-title no-select">{{ chat.name.length > 7 ? (chat.name.substring(0, 7) + '...') : chat.name }}</span>
+        <h6 [ngStyle]="{'color':'white'}" class="chat-url no-select">{{ chat.huggingfaceUrls != undefined && chat.huggingfaceUrls[0] != undefined ? chat.huggingfaceUrls[0].length > 9 ? (chat.huggingfaceUrls[0].substring(0, 9) + '...') : chat.huggingfaceUrls[0] : 'No link provided' }}</h6>
+        <button mat-icon-button class="chat-options" [matMenuTriggerFor]="chatOptionsMenu" [matMenuTriggerData]="{ chat: chat }">
+          <mat-icon [ngStyle]="{'color':'white'}">more_vert</mat-icon>
+        </button>
+      </a>
+    </mat-nav-list>
+    <mat-nav-list class="clear-chats">
+      <mat-divider [ngStyle]="{'border-color':'white'}"></mat-divider>
+      <a mat-list-item (click)="clearChats()">
+        <mat-icon matListItemIcon [ngStyle]="{'color':'white'}">delete</mat-icon>
+        <h3 [ngStyle]="{'color':'white'}" class="no-select">Clear FlexChats</h3>
+      </a>
+    </mat-nav-list>
+    <mat-list>
+      <a mat-list-item>
+      </a>
+    </mat-list>
+  </mat-sidenav>
+
+  <!-- Mat Menu for chat options -->
+  <mat-menu #chatOptionsMenu="matMenu">
+    <ng-template matMenuContent let-chat="chat">
+      <button mat-menu-item (click)="editChat(chat)">
+        <mat-icon>edit</mat-icon>
+        <span>Edit</span>
+      </button>
+      <button mat-menu-item (click)="deleteChat(chat)">
+        <mat-icon>delete</mat-icon>
+        <span>Delete</span>
+      </button>
+      <button mat-menu-item (click)="downloadChat(chat)">
+        <mat-icon>download</mat-icon>
+        <span>Download Chat</span>
+      </button>
+      <button mat-menu-item (click)="downloadMessages(chat)">
+        <mat-icon>work_update</mat-icon>
+        <span>Download Messages</span>
+      </button>
+      <button mat-menu-item (click)="clearChat(chat)">
+        <mat-icon>backspace</mat-icon>
+        <span>Clear Chat</span>
+      </button>
+    </ng-template>
+  </mat-menu>
+
+  <mat-sidenav-content>
+    <!-- Main content -->
+    <mat-toolbar class="toolbar">
+      <button mat-icon-button (click)="sidenav.toggle()" class="menu-button">
+        <mat-icon [ngStyle]="{'color':'black'}">menu_open</mat-icon>
+      </button>
+      <h2 class="title-text" [ngStyle]="{'color':'black'}">FlexChat</h2>
+      <button mat-icon-button (click)="toggleTheme()" class="theme-toggle-button">
+        <mat-icon [ngStyle]="{'color':'black'}">{{ darkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <!-- Chat content or welcome page -->
+    <div class="chat-container" *ngIf="selectedChat != null">
+      <div class="api-link">
+        <mat-form-field appearance="fill" class="model-url-dropdown">
+          <mat-label>Copy Model API Inference URL</mat-label>
+          <mat-select [(ngModel)]="selectedModelUrl">
+            <mat-option *ngFor="let url of selectedChat?.huggingfaceUrls" [value]="url">{{ url }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-icon-button (click)="copyUrlToClipboard()">
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      </div>
+      <div class="message-container" #messageContainer>
+        <div *ngFor="let message of selectedChat?.messages" class="message">
+          <div [ngClass]="{
+            'user-message': !message.isAI,
+            'ai-message': message.isAI,
+            'ai-error-message': message.isAI && message.isError
+          }">
+            <div class="message-content">
+              <div *ngIf="!message.isAI" class="user-message-sender">You</div>
+              <div *ngIf="message.isAI && !message.isError" class="ai-message-sender">{{ message.huggingfaceUrl }}</div>
+              <div *ngIf="message.isAI && message.isError" class="user-message-sender">{{ message.huggingfaceUrl }}</div>
+              {{ message.message }}
+            </div>
+          </div>
+        </div>        
+      </div>
+      <div>
+        <mat-progress-bar *ngIf="selectedChat.isLoading" mode="indeterminate" class="loading-chat"></mat-progress-bar>
+        <mat-form-field appearance="fill" class="message-input">
+          <input matInput placeholder="Send a message" (keyup.enter)="sendMessage(messageInput.value); messageInput.value = ''" #messageInput [disabled]="selectedChat.isLoading">
+        </mat-form-field>
+        <button mat-icon-button class="send-button" (click)="sendMessage(messageInput.value); messageInput.value = ''" [disabled]="selectedChat.isLoading">
+          <mat-icon>send</mat-icon>
+        </button>
+        <button mat-icon-button class="scroll-button" (click)="scrollToBottom()">
+          <mat-icon>arrow_downward</mat-icon>
+        </button>
+      </div>
+      <h6 class="max-messages">Generated information may be inaccurate. Maximum number of messages in this chat before trimming is {{ env.MAX_MESSAGES_AMOUNT }}. You currently have {{ selectedChat.messages.length }} messages.</h6>
+    </div>
+    <div class="welcome-page" *ngIf="selectedChat == null">
+      <h1>Welcome to FlexChat</h1>
+      <p>FlexChat is a platform where you can test out your <b>HuggingFace conversational AI models.</b></p>
+      <p>Begin your experience by clicking the <b>New FlexChat</b> button.</p>
+    </div>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
