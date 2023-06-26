@@ -42,12 +42,14 @@ export class SidebarComponent {
       width: environment.DIALOG_WIDTH
     });
 
-    dialogRef.afterClosed().subscribe((result: any) => {
+    dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
-        let res = this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
-        this.chats.push(new Chat(res.name, res.huggingfaceUrls));
-        this.selectedChat = this.chats[this.chats.length - 1];
-        this.selectedModelUrl = result.huggingfaceUrls[0];
+        let res = await this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
+        if (res.huggingfaceUrls.length > 0) {
+          this.chats.push(new Chat(res.name, res.huggingfaceUrls));
+          this.selectedChat = this.chats[this.chats.length - 1];
+          this.selectedModelUrl = result.huggingfaceUrls[0];
+        }
       }
     });
   }
@@ -71,16 +73,27 @@ export class SidebarComponent {
       data: chat
     });
 
-    dialogRef.afterClosed().subscribe((result: any) => {
+    dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
-        let res = this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
-        chat.name = res.name;
-        chat.huggingfaceUrls = res.huggingfaceUrls;
+        let res = await this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
+        if (res.huggingfaceUrls.length > 0) {
+          chat.name = res.name;
+          chat.huggingfaceUrls = res.huggingfaceUrls;
+        }
+        else {
+          const index = this.chats.indexOf(chat);
+          if (index !== -1) {
+            this.chats.splice(index, 1);
+            if (this.selectedChat === chat) {
+              this.selectedChat = null;
+            }
+          }
+        }
       }
     });
   }
 
-  public setHuggingFaceParams(name: string, huggingfaceUrls: string[]) {
+  public async setHuggingFaceParams(name: string, huggingfaceUrls: string[]) {
     if (name.trim().length === 0) {
       name = 'Untitled Chat';
     }
@@ -88,7 +101,27 @@ export class SidebarComponent {
         if (huggingfaceUrls[i].trim().length === 0) {
             huggingfaceUrls.splice(i, 1);
         }
+        try {
+          let response: any = await lastValueFrom(this.chatService.doGet(huggingfaceUrls[i]));
+          if (response) {
+            if (response.pipeline_tag == 'private') {
+              this.snackBar.open('Error: Model is private.', 'Close', { duration: 2000 });
+              huggingfaceUrls.splice(i, 1);
+            }
+            else if (response.pipeline_tag != 'conversational') {
+              this.snackBar.open('Error: Model is not conversational.', 'Close', { duration: 2000 });
+              huggingfaceUrls.splice(i, 1);
+            }
+          }
+        }
+        catch (error: any) {
+          this.snackBar.open('Error:  ' + error.error.error, 'Close', { duration: 2000 });
+          huggingfaceUrls.splice(i, 1);
+        }
     }
+    // if (huggingfaceUrls.length == 0) {
+    //   this.snackBar.open('Error: Chat urls are all invalid', 'Close', { duration: 2000 });
+    // }
     return {
       name: name,
       huggingfaceUrls: huggingfaceUrls
@@ -143,8 +176,15 @@ export class SidebarComponent {
             currentChat.messages.push(new Message('Error: Invalid response', true, true, currentChat.huggingfaceUrls[i]));
           }
         } catch (error: any) {
-          // Handle error case
-          currentChat?.messages.push(new Message('Error: ' + error.message, true, true, currentChat.huggingfaceUrls[i]));
+          // Handle error case (error.error.error) yes it is weird
+          let err = null;
+          if (error.error == null) {
+            err = error.message;
+          }
+          else {
+            err = error.error.error;
+          }
+          currentChat?.messages.push(new Message('Error: ' + err, true, true, currentChat.huggingfaceUrls[i]));
         }
         currentChat.isLoading = false;
 

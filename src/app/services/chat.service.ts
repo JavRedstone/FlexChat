@@ -12,6 +12,15 @@ export class ChatService {
   ) { }
 
   /**
+   * Performs the get function
+   * @param serviceUrl string
+   * @returns Observable<any>
+   */
+  public doGet(modelUrl: string): Observable<any> {
+    return this.httpClient.get<any>(environment.API_URL + modelUrl);
+  }
+
+  /**
    * Performs the post function
    * @param serviceUrl string
    * @param payload any

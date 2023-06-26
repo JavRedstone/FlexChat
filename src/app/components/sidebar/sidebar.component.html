@@ -106,7 +106,7 @@
       <div>
         <mat-progress-bar *ngIf="selectedChat.isLoading" mode="indeterminate" class="loading-chat"></mat-progress-bar>
         <mat-form-field appearance="fill" class="message-input">
-          <input matInput placeholder="Send a message" (keyup.enter)="sendMessage(messageInput.value); messageInput.value = ''" #messageInput [disabled]="selectedChat.isLoading">
+          <input matInput placeholder="Send a message" (keyup.enter)="sendMessage(messageInput.value); messageInput.value = ''" #messageInput>
         </mat-form-field>
         <button mat-icon-button class="send-button" (click)="sendMessage(messageInput.value); messageInput.value = ''" [disabled]="selectedChat.isLoading">
           <mat-icon>send</mat-icon>
@@ -115,7 +115,7 @@
           <mat-icon>arrow_downward</mat-icon>
         </button>
       </div>
-      <h6 class="max-messages">Generated information may be inaccurate. Maximum number of messages in this chat before trimming is {{ env.MAX_MESSAGES_AMOUNT }}. You currently have {{ selectedChat.messages.length }} messages.</h6>
+      <h6 class="max-messages">{{ selectedChat.messages.length }} messages, {{ env.MAX_MESSAGES_AMOUNT - selectedChat.messages.length }} left before trimming.</h6>
     </div>
     <div class="welcome-page" *ngIf="selectedChat == null">
       <h1>Welcome to FlexChat</h1>
