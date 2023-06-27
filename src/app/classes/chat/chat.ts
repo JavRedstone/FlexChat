@@ -1,13 +1,14 @@
 import { Message } from "../message/message";
+import { Model } from "../model/model";
 
 export class Chat {
     public name: string = 'Untitled Chat';
-    public huggingfaceUrls: string[] = [''];
+    public huggingfaceModels: Model[] = [];
     public messages: Message[] = [];
     public isLoading: boolean = false;
 
-    constructor(name: string, huggingfaceUrls: string[]) {
+    constructor(name: string, huggingfaceModels: Model[]) {
         this.name = name;
-        this.huggingfaceUrls = huggingfaceUrls;
+        this.huggingfaceModels = huggingfaceModels;
     }
 }

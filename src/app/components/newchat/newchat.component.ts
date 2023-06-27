@@ -1,5 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Model } from 'src/app/classes/model/model';
 
 @Component({
   selector: 'app-newchat',
@@ -8,7 +9,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 })
 export class NewchatComponent {
   public chatName: string = '';
-  public huggingfaceUrls: string[] = [''];
+  public huggingfaceModels: Model[] = [new Model('')];
 
   constructor(
     private dialogRef: MatDialogRef<NewchatComponent>,
@@ -16,17 +17,17 @@ export class NewchatComponent {
   ) {}
 
   public addHuggingfaceUrlField() {
-    this.huggingfaceUrls.push('');
+    this.huggingfaceModels.push(new Model(''));
   }
 
   public removeHuggingfaceUrlField(index: number) {
-    this.huggingfaceUrls.splice(index, 1);
+    this.huggingfaceModels.splice(index, 1);
   }
 
   public saveChat() {
     const chatData = {
       name: this.chatName.trim(),
-      huggingfaceUrls: this.huggingfaceUrls.filter(url => url.trim() !== '')
+      huggingfaceModels: this.huggingfaceModels
     };
     this.dialogRef.close(chatData);
   }

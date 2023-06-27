@@ -1,40 +1,56 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { Model } from '../classes/model/model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  constructor(
-    private httpClient: HttpClient
-  ) { }
+  constructor(private httpClient: HttpClient) {}
 
-  /**
-   * Performs the get function
-   * @param serviceUrl string
-   * @returns Observable<any>
-   */
-  public doGet(modelUrl: string): Observable<any> {
-    return this.httpClient.get<any>(environment.API_URL + modelUrl);
+  public doGet(model: Model): Observable<any> {
+    return this.httpClient.get<any>(environment.API_URL + model.url);
   }
 
-  /**
-   * Performs the post function
-   * @param serviceUrl string
-   * @param payload any
-   * @returns Observable<any>
-   */
-   public doPost(modelUrl: string, text: any): Observable<any> {
-    var payload = {
-      inputs: {
-        text: text
-      }
+  public doPost(model: Model, text: any): Observable<any> {
+    let payload = {
+      inputs: text
     };
-    var header = {
-      headers: new HttpHeaders().set('Authorization', 'Bearer ' + environment.HUGGINGFACE_TOKEN)
-    };
-    return this.httpClient.post<any>(environment.API_URL + modelUrl, payload, header);
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${environment.HUGGINGFACE_TOKEN}`
+    });
+
+    if (model.pipeline_tag == 'conversational') {
+      payload = {
+        inputs: {
+          text: text
+        }
+      };
+
+      return this.httpClient.post<any>(environment.API_URL + model.url, payload, { headers, responseType: 'json' });
+    } else if (model.pipeline_tag == 'text-to-image') {
+      payload = {
+        inputs: text
+      };
+
+      return this.httpClient.post(environment.API_URL + model.url, payload, {
+        headers,
+        responseType: 'arraybuffer' // Set the response type to arraybuffer
+      }).pipe(
+        map((response: any) => {
+          // Convert the response data into a Base64 encoded string
+          const base64String = btoa(String.fromCharCode(...new Uint8Array(response)));
+
+          // Prefix the Base64 string with the appropriate data URL prefix
+          const imageUrl = `data:image/jpeg;base64,${base64String}`;
+          
+          return imageUrl;
+        })
+      );
+    }
+
+    return this.httpClient.post<any>(environment.API_URL + model.url, payload, { headers, responseType: 'json' });
   }
 }

@@ -4,11 +4,11 @@
     <input matInput placeholder="Chat Name" [(ngModel)]="chatName" required>
   </mat-form-field>
 
-  <div *ngFor="let url of huggingfaceUrls; let i = index; trackBy: trackByFn">
+  <div *ngFor="let url of huggingfaceModels; let i = index; trackBy: trackByFn">
     <mat-form-field>
-      <input matInput placeholder="HuggingFace Model URL" [(ngModel)]="huggingfaceUrls[i]" required>
+      <input matInput placeholder="HuggingFace Model URL" [(ngModel)]="huggingfaceModels[i].url" required>
     </mat-form-field>
-    <button mat-icon-button color="warn" *ngIf="huggingfaceUrls.length > 1" (click)="removeHuggingfaceUrlField(i)">
+    <button mat-icon-button color="warn" *ngIf="huggingfaceModels.length > 1" (click)="removeHuggingfaceUrlField(i)">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -17,5 +17,5 @@
 </div>
 <mat-dialog-actions align="end">
   <button mat-button (click)="cancel()">Cancel</button>
-  <button mat-button color="primary" [disabled]="!chatName || huggingfaceUrls.length === 0" (click)="saveChat()">Done</button>
+  <button mat-button color="primary" [disabled]="!chatName || huggingfaceModels.length === 0" (click)="saveChat()">Done</button>
 </mat-dialog-actions>

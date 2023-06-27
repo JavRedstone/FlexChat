@@ -11,6 +11,7 @@ import { EditchatComponent } from '../editchat/editchat.component';
 import { DeletechatComponent } from '../deletechat/deletechat.component';
 import { ClearallconversationsComponent } from '../clearallconversations/clearallconversations.component';
 import { ClearchathistoryComponent } from '../clearchathistory/clearchathistory.component';
+import { Model } from 'src/app/classes/model/model';
 
 @Component({
   selector: 'app-sidebar',
@@ -44,11 +45,11 @@ export class SidebarComponent {
 
     dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
-        let res = await this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
-        if (res.huggingfaceUrls.length > 0) {
-          this.chats.push(new Chat(res.name, res.huggingfaceUrls));
+        let res = await this.setHuggingFaceParams(result.name, result.huggingfaceModels);
+        if (res.huggingfaceModels.length > 0) {
+          this.chats.push(new Chat(res.name, res.huggingfaceModels));
           this.selectedChat = this.chats[this.chats.length - 1];
-          this.selectedModelUrl = result.huggingfaceUrls[0];
+          this.selectedModelUrl = result.huggingfaceModels[0];
         }
       }
     });
@@ -75,10 +76,10 @@ export class SidebarComponent {
 
     dialogRef.afterClosed().subscribe(async (result: any) => {
       if (result) {
-        let res = await this.setHuggingFaceParams(result.name, result.huggingfaceUrls);
-        if (res.huggingfaceUrls.length > 0) {
+        let res = await this.setHuggingFaceParams(result.name, result.huggingfaceModels);
+        if (res.huggingfaceModels.length > 0) {
           chat.name = res.name;
-          chat.huggingfaceUrls = res.huggingfaceUrls;
+          chat.huggingfaceModels = res.huggingfaceModels;
         }
         else {
           const index = this.chats.indexOf(chat);
@@ -93,38 +94,38 @@ export class SidebarComponent {
     });
   }
 
-  public async setHuggingFaceParams(name: string, huggingfaceUrls: string[]) {
+  public async setHuggingFaceParams(name: string, huggingfaceModels: Model[]) {
     if (name.trim().length === 0) {
       name = 'Untitled Chat';
     }
-    for (let i = 0; i < huggingfaceUrls.length; i++) {
-        if (huggingfaceUrls[i].trim().length === 0) {
-            huggingfaceUrls.splice(i, 1);
+    for (let i = 0; i < huggingfaceModels.length; i++) {
+        if (huggingfaceModels[i].url.trim().length === 0) {
+            huggingfaceModels.splice(i, 1);
         }
         try {
-          let response: any = await lastValueFrom(this.chatService.doGet(huggingfaceUrls[i]));
+          let response: any = await lastValueFrom(this.chatService.doGet(huggingfaceModels[i]));
           if (response) {
-            if (response.pipeline_tag == 'private') {
+            if (response.private == true) {
               this.snackBar.open('Error: Model is private.', 'Close', { duration: 2000 });
-              huggingfaceUrls.splice(i, 1);
+              huggingfaceModels.splice(i, 1);
             }
-            else if (response.pipeline_tag != 'conversational') {
-              this.snackBar.open('Error: Model is not conversational.', 'Close', { duration: 2000 });
-              huggingfaceUrls.splice(i, 1);
+            else if (!environment.ALLOWED_PIPELINE_TAGS.includes(response.pipeline_tag)) {
+              this.snackBar.open('Error: Model pipeline is not supported', 'Close', { duration: 2000 });
+              huggingfaceModels.splice(i, 1);
+            }
+            else {
+              huggingfaceModels[i].pipeline_tag = response.pipeline_tag;
             }
           }
         }
         catch (error: any) {
           this.snackBar.open('Error:  ' + error.error.error, 'Close', { duration: 2000 });
-          huggingfaceUrls.splice(i, 1);
+          huggingfaceModels.splice(i, 1);
         }
     }
-    // if (huggingfaceUrls.length == 0) {
-    //   this.snackBar.open('Error: Chat urls are all invalid', 'Close', { duration: 2000 });
-    // }
     return {
       name: name,
-      huggingfaceUrls: huggingfaceUrls
+      huggingfaceModels: huggingfaceModels
     }
   }
 
@@ -163,28 +164,20 @@ export class SidebarComponent {
   public async sendMessage(message: string, sent: boolean = false) {
     let currentChat = this.selectedChat;
     if (currentChat != null && !currentChat.isLoading && message.trim().length > 0) {
-      currentChat.messages.push(new Message(message, false, false, ''));
+      currentChat.messages.push(new Message(message, false, false, false, ''));
       this.scrollToBottom();
-      for (let i = 0; i < currentChat.huggingfaceUrls.length; i++) {
+      for (let i = 0; i < currentChat.huggingfaceModels.length; i++) {
         try {
           currentChat.isLoading = true;
-          let response: any = await lastValueFrom(this.chatService.doPost(currentChat.huggingfaceUrls[i], message));
+          let response: any = await lastValueFrom(this.chatService.doPost(currentChat.huggingfaceModels[i], message));
           if (response) {
-            currentChat.messages.push(new Message(response.generated_text, true, false, currentChat.huggingfaceUrls[i]));
+            currentChat.messages.push(new Message(this.responseValue(response), true, false, currentChat.huggingfaceModels[i].pipeline_tag == 'text-to-image', currentChat.huggingfaceModels[i].url));
           } else {
             // Handle error case when response is empty or invalid
-            currentChat.messages.push(new Message('Error: Invalid response', true, true, currentChat.huggingfaceUrls[i]));
+            currentChat.messages.push(new Message('Error: Invalid response', true, true, false, currentChat.huggingfaceModels[i].url));
           }
         } catch (error: any) {
-          // Handle error case (error.error.error) yes it is weird
-          let err = null;
-          if (error.error == null) {
-            err = error.message;
-          }
-          else {
-            err = error.error.error;
-          }
-          currentChat?.messages.push(new Message('Error: ' + err, true, true, currentChat.huggingfaceUrls[i]));
+          currentChat.messages.push(new Message('Error: ' + error.error.error, true, true, false, currentChat.huggingfaceModels[i].url));
         }
         currentChat.isLoading = false;
 
@@ -196,6 +189,25 @@ export class SidebarComponent {
         }
         this.scrollToBottom();
       }
+    }
+  }
+
+  public responseValue (response: any) {
+    if (response.generated_text) {
+      return response.generated_text;
+    }
+    else if (Array.isArray(response)) {
+      if (response.length > 0) {
+        if (response[0].generated_text) {
+          return response[0].generated_text;
+        }
+        else {
+          return response[0];
+        }
+      }
+    }
+    else {
+      return response;
     }
   }
 

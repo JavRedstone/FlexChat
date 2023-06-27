@@ -16,7 +16,7 @@
       <a mat-list-item *ngFor="let chat of chats" (click)="selectedChat = chat; scrollToBottom()" [ngStyle]="{ 'background-color': chat == selectedChat ? 'rgba(255, 255, 255, 0.1)' : '' }">
         <mat-icon matListItemIcon [ngStyle]="{'color':'white'}">chat_bubble</mat-icon>
         <span [ngStyle]="{'color':'white'}" class="chat-title no-select">{{ chat.name.length > 7 ? (chat.name.substring(0, 7) + '...') : chat.name }}</span>
-        <h6 [ngStyle]="{'color':'white'}" class="chat-url no-select">{{ chat.huggingfaceUrls != undefined && chat.huggingfaceUrls[0] != undefined ? chat.huggingfaceUrls[0].length > 9 ? (chat.huggingfaceUrls[0].substring(0, 9) + '...') : chat.huggingfaceUrls[0] : 'No link provided' }}</h6>
+        <h6 [ngStyle]="{'color':'white'}" class="chat-url no-select">{{ chat.huggingfaceModels[0] != undefined && chat.huggingfaceModels[0].url != undefined ? chat.huggingfaceModels[0].url.length > 9 ? (chat.huggingfaceModels[0].url.substring(0, 9) + '...') : chat.huggingfaceModels[0] : 'No link provided' }}</h6>
         <button mat-icon-button class="chat-options" [matMenuTriggerFor]="chatOptionsMenu" [matMenuTriggerData]="{ chat: chat }">
           <mat-icon [ngStyle]="{'color':'white'}">more_vert</mat-icon>
         </button>
@@ -80,7 +80,7 @@
         <mat-form-field appearance="fill" class="model-url-dropdown">
           <mat-label>Copy Model API Inference URL</mat-label>
           <mat-select [(ngModel)]="selectedModelUrl">
-            <mat-option *ngFor="let url of selectedChat?.huggingfaceUrls" [value]="url">{{ url }}</mat-option>
+            <mat-option *ngFor="let model of selectedChat?.huggingfaceModels" [value]="model.url">{{ model.url }}</mat-option>
           </mat-select>
         </mat-form-field>
         <button mat-icon-button (click)="copyUrlToClipboard()">
@@ -98,7 +98,11 @@
               <div *ngIf="!message.isAI" class="user-message-sender">You</div>
               <div *ngIf="message.isAI && !message.isError" class="ai-message-sender">{{ message.huggingfaceUrl }}</div>
               <div *ngIf="message.isAI && message.isError" class="user-message-sender">{{ message.huggingfaceUrl }}</div>
-              {{ message.message }}
+              <div *ngIf="!message.isImage">
+                {{ message.message }}
+              </div>
+              <img *ngIf="message.isImage" [src]="message.message" alt="Generated Image" class="gen-image">
+
             </div>
           </div>
         </div>        
@@ -119,7 +123,7 @@
     </div>
     <div class="welcome-page" *ngIf="selectedChat == null">
       <h1>Welcome to FlexChat</h1>
-      <p>FlexChat is a platform where you can test out your <b>HuggingFace conversational AI models.</b></p>
+      <p>FlexChat is a platform where you can test out your <b>HuggingFace AI models.</b></p>
       <p>Begin your experience by clicking the <b>New FlexChat</b> button.</p>
     </div>
     <router-outlet></router-outlet>

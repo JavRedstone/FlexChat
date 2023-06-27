@@ -1,5 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Model } from 'src/app/classes/model/model';
 
 @Component({
   selector: 'app-editchat',
@@ -8,28 +9,28 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 })
 export class EditchatComponent {
   public chatName: string = '';
-  public huggingfaceUrls: string[] = [];
+  public huggingfaceModels: Model[] = [new Model('')];
 
   constructor(
     public dialogRef: MatDialogRef<EditchatComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.chatName = data.name;
-    this.huggingfaceUrls = data.huggingfaceUrls;
+    this.huggingfaceModels = data.huggingfaceModels;
   }
 
   addHuggingfaceUrlField(): void {
-    this.huggingfaceUrls.push('');
+    this.huggingfaceModels.push(new Model(''));
   }
 
   removeHuggingfaceUrlField(index: number): void {
-    this.huggingfaceUrls.splice(index, 1);
+    this.huggingfaceModels.splice(index, 1);
   }
 
   public saveChat() {
     const chatData = {
       name: this.chatName.trim(),
-      huggingfaceUrls: this.huggingfaceUrls.filter(url => url.trim() !== '')
+      huggingfaceModels: this.huggingfaceModels
     };
     this.dialogRef.close(chatData);
   }
