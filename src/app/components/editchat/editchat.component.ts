@@ -16,7 +16,7 @@ export class EditchatComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.chatName = data.name;
-    this.huggingfaceModels = data.huggingfaceModels;
+    this.huggingfaceModels = [...data.huggingfaceModels];
   }
 
   addHuggingfaceUrlField(): void {

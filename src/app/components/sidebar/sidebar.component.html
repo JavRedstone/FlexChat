@@ -1,5 +1,5 @@
 <mat-sidenav-container class="container">
-  <mat-sidenav #sidenav mode="side" [opened]="true" class="sidenav">
+  <mat-sidenav #sidenav mode="side" [opened]="window.innerWidth > 500" class="sidenav">
     <!-- Sidebar content -->
     <mat-nav-list class="new-chat">
       <a mat-list-item (click)="newChat()">
@@ -83,7 +83,7 @@
             <mat-option *ngFor="let model of selectedChat?.huggingfaceModels" [value]="model.url">{{ model.url }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <button mat-icon-button (click)="copyUrlToClipboard()">
+        <button mat-icon-button class="copy-url" (click)="copyUrlToClipboard()">
           <mat-icon>content_copy</mat-icon>
         </button>
       </div>
@@ -107,9 +107,9 @@
           </div>
         </div>        
       </div>
-      <div>
-        <mat-progress-bar *ngIf="selectedChat.isLoading" mode="indeterminate" class="loading-chat"></mat-progress-bar>
-        <mat-form-field appearance="fill" class="message-input">
+      <div class="message-input">
+        <mat-progress-bar [mode]="selectedChat.isLoading ? 'indeterminate' : 'determinate'"></mat-progress-bar>
+        <mat-form-field appearance="fill" class="input-form-field">
           <input matInput placeholder="Send a message" (keyup.enter)="sendMessage(messageInput.value); messageInput.value = ''" #messageInput>
         </mat-form-field>
         <button mat-icon-button class="send-button" (click)="sendMessage(messageInput.value); messageInput.value = ''" [disabled]="selectedChat.isLoading">

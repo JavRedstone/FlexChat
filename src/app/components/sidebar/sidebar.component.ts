@@ -25,6 +25,7 @@ export class SidebarComponent {
   public selectedModelUrl: string = '';
   public darkMode = false;
   public env = environment;
+  public window = window;
 
   constructor(
     private chatService: ChatService,
@@ -99,29 +100,35 @@ export class SidebarComponent {
       name = 'Untitled Chat';
     }
     for (let i = 0; i < huggingfaceModels.length; i++) {
-        if (huggingfaceModels[i].url.trim().length === 0) {
+      if (huggingfaceModels[i].url.trim().length === 0) {
+          huggingfaceModels.splice(i, 1);
+      }
+      let bootModel = false;
+      try {
+        let response: any = await lastValueFrom(this.chatService.doGet(huggingfaceModels[i]));
+        if (response) {
+          if (response.private == true) {
+            this.snackBar.open('Error: Model is private.', 'Close', { duration: 2000 });
             huggingfaceModels.splice(i, 1);
-        }
-        try {
-          let response: any = await lastValueFrom(this.chatService.doGet(huggingfaceModels[i]));
-          if (response) {
-            if (response.private == true) {
-              this.snackBar.open('Error: Model is private.', 'Close', { duration: 2000 });
-              huggingfaceModels.splice(i, 1);
-            }
-            else if (!environment.ALLOWED_PIPELINE_TAGS.includes(response.pipeline_tag)) {
-              this.snackBar.open('Error: Model pipeline is not supported', 'Close', { duration: 2000 });
-              huggingfaceModels.splice(i, 1);
-            }
-            else {
-              huggingfaceModels[i].pipeline_tag = response.pipeline_tag;
-            }
+          }
+          else if (!environment.ALLOWED_PIPELINE_TAGS.includes(response.pipeline_tag)) {
+            this.snackBar.open('Error: Model pipeline is not supported', 'Close', { duration: 2000 });
+            huggingfaceModels.splice(i, 1);
+          }
+          else {
+            huggingfaceModels[i].pipeline_tag = response.pipeline_tag;
+            bootModel = true;
           }
         }
-        catch (error: any) {
-          this.snackBar.open('Error:  ' + error.error.error, 'Close', { duration: 2000 });
-          huggingfaceModels.splice(i, 1);
-        }
+      }
+      catch (error: any) {
+        this.snackBar.open('Error:  ' + error.error.error, 'Close', { duration: 2000 });
+        huggingfaceModels.splice(i, 1);
+      }
+      // message to boot up the model
+      this.snackBar.open('Booting model: ' + huggingfaceModels[i].url, 'Close', { duration: 2000 });
+      let r: any = await lastValueFrom(this.chatService.doPost(huggingfaceModels[i], 'Hi'));
+      this.snackBar.open('Successfully booted model: ' + huggingfaceModels[i].url, 'Close', { duration: 2000 });
     }
     return {
       name: name,
