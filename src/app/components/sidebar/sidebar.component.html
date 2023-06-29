@@ -1,5 +1,5 @@
 <mat-sidenav-container class="container">
-  <mat-sidenav #sidenav mode="side" [opened]="window.innerWidth > 500" class="sidenav">
+  <mat-sidenav #sidenav mode="side" [opened]="window.innerWidth > 750" class="sidenav" [mode]="window.innerWidth > 750 ? 'side' : 'over'  ">
     <!-- Sidebar content -->
     <mat-nav-list class="new-chat">
       <a mat-list-item (click)="newChat()">
