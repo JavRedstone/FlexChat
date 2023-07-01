@@ -14,6 +14,7 @@ import { DeletechatComponent } from './components/deletechat/deletechat.componen
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ClearchathistoryComponent } from './components/clearchathistory/clearchathistory.component';
 import { ClearallconversationsComponent } from './components/clearallconversations/clearallconversations.component';
+import { LoadingchatComponent } from './components/loadingchat/loadingchat.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { ClearallconversationsComponent } from './components/clearallconversatio
     EditchatComponent,
     DeletechatComponent,
     ClearchathistoryComponent,
-    ClearallconversationsComponent
+    ClearallconversationsComponent,
+    LoadingchatComponent
   ],
   imports: [
     BrowserModule,

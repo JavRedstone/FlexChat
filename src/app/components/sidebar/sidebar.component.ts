@@ -2,7 +2,7 @@ import { Component, ViewChild, ElementRef } from '@angular/core';
 import { Chat } from 'src/app/classes/chat/chat';
 import { NewchatComponent } from '../newchat/newchat.component';
 import { ChatService } from 'src/app/services/chat.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { lastValueFrom } from 'rxjs';
 import { Message } from 'src/app/classes/message/message';
 import { environment } from 'src/environments/environment';
@@ -12,6 +12,7 @@ import { DeletechatComponent } from '../deletechat/deletechat.component';
 import { ClearallconversationsComponent } from '../clearallconversations/clearallconversations.component';
 import { ClearchathistoryComponent } from '../clearchathistory/clearchathistory.component';
 import { Model } from 'src/app/classes/model/model';
+import { LoadingchatComponent } from '../loadingchat/loadingchat.component';
 
 @Component({
   selector: 'app-sidebar',
@@ -26,6 +27,8 @@ export class SidebarComponent {
   public darkMode = false;
   public env = environment;
   public window = window;
+
+  private loadingDialog: MatDialogRef<any> | null = null;
 
   constructor(
     private chatService: ChatService,
@@ -99,6 +102,9 @@ export class SidebarComponent {
     if (name.trim().length === 0) {
       name = 'Untitled Chat';
     }
+    this.loadingDialog = this.dialog.open(LoadingchatComponent, {
+      disableClose: true
+    });
     for (let i = 0; i < huggingfaceModels.length; i++) {
       if (huggingfaceModels[i].url.trim().length === 0) {
           huggingfaceModels.splice(i, 1);
@@ -125,10 +131,15 @@ export class SidebarComponent {
         this.snackBar.open('Error:  ' + error.error.error, 'Close', { duration: 2000 });
         huggingfaceModels.splice(i, 1);
       }
-      // message to boot up the model
-      this.snackBar.open('Booting model: ' + huggingfaceModels[i].url, 'Close', { duration: 2000 });
-      let r: any = await lastValueFrom(this.chatService.doPost(huggingfaceModels[i], 'Hi'));
-      this.snackBar.open('Successfully booted model: ' + huggingfaceModels[i].url, 'Close', { duration: 2000 });
+      finally {
+        // message to boot up the model
+        this.snackBar.open('Booting model: ' + huggingfaceModels[i].url, 'Close', { duration: 2000 });
+        let r: any = await lastValueFrom(this.chatService.doPost(huggingfaceModels[i], 'Hi'));
+        this.snackBar.open('Successfully booted model: ' + huggingfaceModels[i].url, 'Close', { duration: 2000 });
+      }
+    }
+    if (this.loadingDialog) {
+      this.loadingDialog.close();
     }
     return {
       name: name,
